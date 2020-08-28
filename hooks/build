@@ -1,0 +1,20 @@
+#!/bin/bash 
+
+env
+
+BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+VCS_REF=$(git rev-parse --short --verify HEAD)
+BUILD_VERSION=$(git describe --tags ${VCS_REF} | cut -c2-)
+BUILD_TAG=${BUILD_VERSION#*-}
+
+docker build . \
+  --build-arg BUILD_DATE=${BUILD_DATE} \
+  --build-arg VCS_REF=${VCS_REF} \
+  --build-arg BUILD_VERSION=${BUILD_VERSION} \
+  --build-arg GEOSERVER_VERSION=${BUILD_TAG} \
+  --tag "1904labs/postgis:${BUILD_TAG:-unknown}"
+
+# docker tag "1904labs/postgis:${BUILD_TAG}" "1904labs/postgis:latest"
+
+echo To run this image:
+echo $(docker inspect 1904labs/postgis:${BUILD_TAG} --format '{{index .ContainerConfig.Labels "org.label-schema.docker.cmd"}}')
